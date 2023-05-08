@@ -14,7 +14,7 @@ pinecone_api_key = os.environ.get('PINECONE_API_KEY')
 pinecone_environment = os.environ.get('PINECONE_ENVIRONMENT')
 pinecone_index = os.environ.get('PINECONE_INDEX')
 pinecone_namespace = 'testing-pdf-0001'
-temperature = 0.7
+temperature = 0.5
 source_amount = 4
 
 startup = f"""{Fore.WHITE}Using the following credentials:{Fore.WHITE}
@@ -60,14 +60,20 @@ process = query(openai_api_key=openai_api_key, pinecone_api_key=pinecone_api_key
 
 def chat_loop():
     chat_history = []
+
+  
     while True:
         query = input("Please enter your question (or type 'exit' to end): ")
+      
         if query.lower() == 'exit':
             break
+          
         result = process({"question": query, "chat_history": chat_history})
         source_documents = result['source_documents']
 
         parsed_documents = []
+        # Iterate through the source documents to obtain data for citations 
+        # TO-DO - UPDATE METADATA FOR ACEDEMIC PUBLICATIONS AND WORK
         for doc in source_documents:
             parsed_doc = {
                 "page_content": doc.page_content,
@@ -94,6 +100,7 @@ def chat_loop():
             f'{Fore.BLUE}{Style.BRIGHT}AI:{Fore.RESET}{Style.NORMAL} {result["answer"]}')
         chat_history.append((query, result["answer"]))
 
+        # Print the citation information for each cited document
         print(f'\n{Fore.RED}Answer Citations')
         for doc in parsed_documents:
             print(f"{Fore.GREEN}{Style.BRIGHT}Source:{Fore.RESET}",
@@ -106,3 +113,7 @@ def chat_loop():
             json.dump(chat_history, json_file, ensure_ascii=False, indent=4)
 
 chat_loop()
+
+
+
+# Update to print the condensed prompt sent to openai

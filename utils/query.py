@@ -24,10 +24,26 @@ def query(openai_api_key, pinecone_api_key, pinecone_environment, pinecone_index
         vectorstore = Chroma(
             persist_directory=persist_directory, embedding_function=embeddings, collection_name="my_collection")
 
+
+    # Set the model 
+      # Gpt-3.5-turbo can be changed to gpt-4
+      # max temperature is 2 least is 0
     model = ChatOpenAI(model_name='gpt-3.5-turbo', temperature=temperature,
-                       openai_api_key=openai_api_key, streaming=True)  # max temperature is 2 least is 0
+                       openai_api_key=openai_api_key, streaming=True)  
+
+  # Great docs here - https://towardsdatascience.com/4-ways-of-question-answering-in-langchain-188c6707cc5a
+    # Sources is the number of sources the user has defined they want citations from
+    # added search_type="mmr" to get the maximum marginal relevance search where it optimizes for similarity to query AND diversity among selected documents.
+  # Maybe update with this https://github.com/hwchase17/langchain/issues/3809
     retriever = vectorstore.as_retriever(search_kwargs={
-                                         "k": sources},  qa_template=QA_PROMPT, question_generator_template=CONDENSE_PROMPT)  # 9 is the max sources
+                                         "k": sources}, qa_template=QA_PROMPT, question_generator_template=CONDENSE_PROMPT)  # 9 is the max sources
+
+  # How to implement SVM - https://python.langchain.com/en/latest/reference/modules/retrievers.html?highlight=SVMRetriever#langchain.retrievers.SVMRetriever
+  # retriever = SVMRetriever.from_texts(["foo", "bar", "world", "hello", "foo bar"], OpenAIEmbeddings())
+  
     qa = ConversationalRetrievalChain.from_llm(
         llm=model, retriever=retriever, return_source_documents=True)
     return qa
+
+# TODO - ADD MEMORY???
+  # conversation = ConversationChain(llm=chat,memory=ConversationBufferMemory())
